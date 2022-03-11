@@ -25,7 +25,7 @@ After signing up for an account you'll be taken to a page called "Your Workspace
 You will need to upload the data files to your cloud project directory before you can work with them. Keep in mind that this is your default working directory after creating a project, and so all files and directories in your scripts will be read relative to it. 
 
 To upload a file during your Rstudio Cloud session:
-1. In the Files pane (this will usually be on the left side of the screen) click "Upload". 
+1. In the Files pane (this will usually be on the right side of the screen) click "Upload". 
 2. Click "Browse..." under "File to upload".
 3. Choose the file on your local machine that you would like to upload.
 
