@@ -1,0 +1,151 @@
+---
+title: "Dimensionality Reduction"
+author: "Jolene Ranek - Amjad Dabi"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(phateR)
+```
+
+
+```{r load data}
+data = read.csv('../data/woodfire_data.csv', fileEncoding="UTF-8-BOM")
+data <-
+  data %>% 
+  column_to_rownames('Chemical')
+
+data_subset <-
+  data %>% 
+  select(-c(1,2, ncol(.)))
+
+head(data_subset)
+```
+
+```{r standarize data}
+#mean centered, unit normalized
+data_subset_scaled <-
+  data_subset %>% 
+  mutate_all(scale)
+```
+
+# Overview of dimensionality reduction methods
+
+We've been discussing visualization tools for high dimensional data, where the dimension corresponds the number of input features or variables. However, there may be instances when working with the full high dimensional dataset poses a challenge. Perhaps you have thousands of features and you'd like to distill down the information to find trends or make a hypothesis. Or maybe your data is noisy or full of redundant information. Or maybe you want to visualize the data for exploration.
+
+Dimensionality reduction techniques are a set of approaches for reducing the original high dimensional data into a meaningful low dimensional representation. For a nonexhaustive review on methods, see [Van Der Maaten et al. _J. Mach. Learn. Res._. 2007](https://www.researchgate.net/publication/228657549_Dimensionality_Reduction_A_Comparative_Review). We can leverage dimensionality reduction methods to visualize and find structure in our data.
+
+Below, we'll give examples of two types of dimensionality reduction approaches: a linear approach (PCA) and a nonlinear approach (PHATE).
+
+## Overview of Principal Components Analysis (PCA)
+
+Principal Components Analysis (PCA) is a linear dimensionality reduction technique that finds principal components (linear combinations of original variables) that retain as much variance as possible. The core concept behind PCA is that many variables are likely highly correlated, thus we can reduce the data through a low rank approximation. 
+For a review on PCA, see [Jolliffee and Cadima. _Philos. Trans. A Math. Phys. Eng. Sci._ . 2016 ](https://doi.org/10.1098/rsta.2015.0202).
+
+
+We can perform PCA on our data to obtain a lower dimensional representation that we can view using a scatterplot in 2 dimensions.
+
+### Perform Principal Components Analysis (PCA)
+R has a native implementation of PCA with the function `prcomp()`. The `summary()` function will then let us see out components. Let's run it.
+
+```{r PCA}
+pca = prcomp(data_subset_scaled)
+summary(pca)
+```
+### Scree plot: what is the variance explained by each principal component? 
+When we perform PCA, we're often interested in understanding what percentage of the total variance is explained by each principal component. This can give us a notion of how many principal components are useful to keep when reducing the size of our input data.
+
+To do this, we can use a `Scree plot` by plotting the number of principal components against the explained variance ratio.
+
+```{r Scree Plot}
+PC_components <- factor(c(1:length(pca$sdev))) 
+var_explained <- pca$sdev^2 / sum(pca$sdev^2)
+scree_df <- data.frame(PC_components, var_explained)
+
+ggplot(data=scree_df, mapping=aes(x=PC_components, y=var_explained, group=1)) +
+  geom_line() +
+  geom_point() +
+  labs(x='Principal Component', y='Variance Explained', title='Scree Plot')
+
+```
+
+### Plot data following PCA
+
+Let's plot our data using the first two principal components. We can also annotate the points according to the chemical name. 
+
+```{r PCA plot, fig.height=6, fig.width=10}
+pca_df <- 
+  pca$x %>% as_tibble() %>% 
+  mutate(chemical = row.names(data))
+
+ggplot(data=pca_df, aes(x=PC1, y=PC2, label=chemical)) +
+  geom_point(color='blue') +
+  geom_text(hjust=0, vjust=0) +
+  xlab(sprintf('PC1 (%s)%%', round(var_explained[1] *100, 2))) +
+  ylab(sprintf('PC1 (%s)%%', round(var_explained[2] *100, 2)))
+```
+
+We can see that the first and second principal components have large outliers driving the variation, including Si, Na, S, Isoeugenol, etc. 
+
+Try plotting principal component 2 vs principal component 3. 3 vs 4. 4 vs 5. What happens? Are the points separating from each other? How does this relate to the percent variance? 
+
+#### Color the PCA plot according to chemical category
+
+Let's color the points in the PCA plot according to their chemical category to see if similar chemicals group together.
+
+We can use `ggplot`'s `color` argument within `aesthetics` to do this.
+
+```{r PCA categories, fig.height=6, fig.width=10}
+pca_df <-
+  pca_df %>% 
+  mutate(chemical_category = data$Chemical.Category)
+
+ggplot(data=pca_df, aes(x=PC1, y=PC2, label=chemical, color=chemical_category)) +
+  geom_point() +
+  geom_text(hjust=0, vjust=0) +
+  xlab(sprintf('PC1 (%s)%%', round(var_explained[1] *100, 2))) +
+  ylab(sprintf('PC1 (%s)%%', round(var_explained[2] *100, 2)))
+```
+
+A lot of the outliers are a group of inorganics shown in purple. We also observe that methoxyphenols tend to group near one another as shown in green.
+
+## Overview of nonlinear dimensionality reduction methods
+
+We saw with PCA that we can use a linear-based dimensionality reduction approach to reduce the high dimensional dataset into a low dimensional dataset by finding principal components that maximize the variance.
+
+Another way to visualize high dimensional data is to use a nonlinear-based dimensionality reduction approach. Some [approaches](https://scikit-learn.org/stable/modules/manifold.html) aim to find a lower dimensional representation of the high dimensional dataset that preserves as much of the geometry of the orignal dataset as possible. For example, we may be interesed in finding a lower dimensional representation that preserves the overall local or global similarity of points. 
+
+
+Once we compute this lower dimensional representation, we can plot it using a scatterplot in two dimensions to visualize our data to make inferences.
+
+### Potential of Heat Diffusion for Affinity-based Transition Embedding (PHATE)
+
+One manifold learning method is called Potential of Heat Diffusion for Affinity-based Transition Embedding (PHATE). [PHATE](https://doi.org/10.1038/s41587-019-0336-3) aims to preserve both local and global distances in the original dataset by leveraging concepts of diffusion and information theory. 
+
+#### Run PHATE
+
+Let's run PHATE and specify that we want the number of output dimensions to be 2 using the `ndim` parameter. For more details on input parameters to PHATE, see the [documentation](https://github.com/KrishnaswamyLab/phateR/blob/master/README.md).
+
+```{r PHATE, fig.height=6, fig.width=10}
+
+data_phate <- phate(data_subset_scaled, ndim=2)
+phate_df <- 
+  data.frame(data_phate$embedding) %>% 
+  mutate(chemical_category = data$Chemical.Category,
+         chemical = row.names(data))
+
+ggplot(data = phate_df, 
+       mapping = aes(x=PHATE1, y=PHATE2, 
+                     color= chemical_category, label=chemical)) +
+  geom_point() +
+  geom_text(vjust= 0, hjust= 'inward') +
+  theme_bw()
+
+```
+

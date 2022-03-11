@@ -1,0 +1,100 @@
+---
+title: "Clustering Example"
+author: "Jolene Ranek"
+date: "3/11/2022"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# Leveraging high-dimensional techniques for single-cell RNA sequencing - Clustering
+
+### Table of Contents
+
+1. [Unsupervised clustering](#cluster)
+2. [Exploratory single-cell marker analysis](#explore)
+
+### 1. Perform Unsupervised Clustering <a name="cluster"></a>
+
+4.1 Let's try clustering with kmeans/ spectral clustering to identify potential cell types associated with disease condition. For starters, let's specify 5 clusters (centers) and visualize the results using PHATE.
+
+```{r, eval = FALSE}
+# Perform unsupervised clustering using kmeans on the phate operator.
+clusters <- kmeans(phate_op$operator$diff_potential, centers = ??)$cluster
+
+# Plot PHATE 1 vs PHATE 2 and color according to clusters
+ggplot(phate_x, aes(x = ??, y = ??, color = factor(clusters))) +
+  geom_point() +
+  xlab("PHATE 1") +
+  ylab("PHATE 2") +
+  scale_color_manual(values = met.brewer("Peru1", 5))
+
+
+# Plot PC 1 vs PC 2 and color according to clusters
+ggplot(pca_op_x, aes(x = ??, y = ??, color = factor(clusters))) +
+  geom_point() +
+  xlab("PCA 1") +
+  ylab("PCA 2") +
+  scale_color_manual(values = met.brewer("Navajo", 5))
+```
+
+### 2. Exploratory analysis of marker genes <a name="explore"></a>
+
+5.1 We can overlay marker genes (genes that are expressed primarily in a single cell type) on the plot to give us an indication of whether our clustering assignments are reasonable. Try plotting PHATE with the following genes.
+
+- Neuron Progenitors: VIM, HES1, NFIA
+- Dopamine Neurons: SUT1, DCX, KCNJ6
+
+```{r, eval = FALSE}
+ggplot(phate_x, aes(x = ??, y = ??, color = metadata$disease)) +
+  geom_point(size = 0.3) +
+  ggtitle("Disease Status") +
+  scale_color_manual(values = met.brewer("Peru1", 2))
+
+ggplot(phate_x, aes(x = ??, y = ??, color = factor(clusters))) +
+  geom_point(size = 0.3) +
+  ggtitle("Clusters") +
+  scale_color_manual(values = met.brewer("Navajo", 5))
+
+#plot VIM
+ggplot(phate_x, aes(x = ??, y = ??, color = data$??)) +
+  geom_point(size = 0.3) +
+  ggtitle("VIM") +
+  scale_color_gradientn(colours = met.brewer("Hiroshige", 8))
+
+#plot HES1
+ggplot(phate_x, aes(x = PHATE1, y = PHATE2, color = data$??)) +
+  geom_point(size = 0.3) +
+  ggtitle("HES1") +
+  scale_color_gradientn(colours = met.brewer("Hiroshige", 8))
+
+#plot NFIA
+ggplot(phate_x, aes(x = PHATE1, y = PHATE2, color = data$??)) +
+  geom_point(size = 0.3) +
+  ggtitle("NFIA") +
+  scale_color_gradientn(colours = met.brewer("Hiroshige", 8))
+
+#plot SYT1
+ggplot(phate_x, aes(x = PHATE1, y = PHATE2, color = data$??)) +
+  geom_point(size = 0.3) +
+  ggtitle("SYT1") +
+  scale_color_gradientn(colours = met.brewer("Hiroshige", 8))
+
+#plot DCX
+ggplot(phate_x, aes(x = PHATE1, y = PHATE2, color = data$??)) +
+  geom_point(size = 0.3) +
+  ggtitle("DCX") +
+  scale_color_gradientn(colours = met.brewer("Hiroshige", 8))
+
+#plot KCNJ6
+ggplot(phate_x, aes(x = PHATE1, y = PHATE2, color = data$??)) +
+  geom_point(size = 0.3) +
+  ggtitle("KCNJ6") +
+  scale_color_gradientn(colours = met.brewer("Hiroshige", 8))
+```
+
+- Which region of the plot is associated with neuron progenitors?
+- With dopamine neurons?
+- Is the expression localizing within particular clusters or is there a lot of heterogeneity?
+- Would you choose a different number of clusters?
+- Do certain cell populations appear to be primarily of one disease status?

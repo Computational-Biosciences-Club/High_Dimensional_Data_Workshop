@@ -1,0 +1,125 @@
+---
+title: "Dimensionality Reduction Example"
+author: "Jolene Ranek"
+date: "3/11/2022"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+# Leveraging high-dimensional techniques for single-cell RNA sequencing - Dimensionality Reduction
+
+### Table of Contents
+
+1. [Data introduction](#introduction)
+2. [PCA dimensionality reduction](#PCA)
+3. [PHATE dimensionality reduction](#PHATE)
+
+### 1. Data Introduction <a name="Introduction"></a>
+
+In this exercise, we will be exploring a single-cell RNA sequencing dataset of dopamine neurons from [Fernandes et al. Cell Reports. 2020.](https://www.cell.com/cell-reports/fulltext/S2211-1247(20)31252-3?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS2211124720312523%3Fshowall%3Dtrue) Here, induced pluripotent stem cells were differentiated into dopamine neurons and treated with different genetic and cytotoxic stressors to study the progression of Parkinson's Disease. Parkinson's Disease is a neurodegenerative disorder that is often characterized by the loss of dopamine neurons and an accumulation of protein aggregates due to genetic mutations (e.g. SNCA-A53T mutation). In this study, wild-type (WT) control and SNCA-A53T mutant Parkinson's disease neurons were treated with rotenone to induce oxidative stress, and tunicamycin to induce endoplasmic reticulum (ER) stress. Gene expression measurements were then collected for each cell using droplet-based single-cell RNA sequencing.
+
+We will be working with preprocessed data originally accessed from the [Single Cell Expression Atlas](https://www.ebi.ac.uk/gxa/sc/experiments/E-MTAB-9154/supplementary-information). The data has already been filtered, normalized, log transformed, downsampled using [Geometric Sketching](https://www.cell.com/cell-systems/fulltext/S2405-4712(19)30152-8?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS2405471219301528%3Fshowall%3Dtrue), and feature selection has been applied. For more details on best practices, see [Luecken and Theis. Mol. Syst. Biology. 2019](https://www.embopress.org/doi/full/10.15252/msb.20188746). We will begin by loading in and visualizing the data and associated metadata.
+
+1.1 Load modules of interest
+
+```{r, message = FALSE}
+library(data.table)
+library(tidyverse)
+library(magrittr)
+library(phateR)
+library(MetBrewer)
+setwd("./")
+```
+
+1.2 Load data and associated metadata
+
+```{r}
+data <- fread("../data/sc_neurons_data.csv", header = TRUE) %>% column_to_rownames(var="V1")
+metadata <- fread("../data/sc_neurons_metadata.csv", header = TRUE) %>% column_to_rownames(var="V1")
+
+data[1:5, 1:5]
+metadata[1:5, ]
+```
+
+In this data, rows represent individual cells and columns represent gene expression measurements (e.g. C1orf112, CD99). Moreover, the metadata provides insight into the genotype, disease, and treatment condition for every cell.
+
+- What are some characteristics you notice in this data? 
+
+### 2. Perform dimensionality reduction with PCA <a name="PCA"></a>
+
+2.1 Try performing dimensionality reduction with PCA.
+
+```{r, eval = FALSE}
+pca_op <- prcomp(data, rank = ??) #how many components
+pca_components_df <- data.frame(pc = 1:??, variance = pca_op$sdev[1:??])
+
+ggplot(pca_components_df, aes(x = pc, y = variance)) +
+  geom_line() +
+  geom_point() +
+  xlab("Principal Component") +
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot")
+
+```
+- How many principal components would you choose to keep?
+- How much variation would you be retaining by doing so?
+
+2.2 Try plotting the PCA data and color cells (points) according to disease, to compound.
+
+```{r, eval = FALSE}
+pca_op_x <- as.data.frame(pca_op$x)
+
+# plot PC1 vs PC2 and color points according to disease
+ggplot(pca_op_x, aes(x = PC1, y = PC2, color = metadata$??)) +
+  geom_point() +
+  xlab("PCA 1") +
+  ylab("PCA 2") +
+  scale_color_manual(values = met.brewer("Egypt", 2))
+
+# plot PC2 vs PC3 and color points according to disease
+ggplot(pca_op_x, aes(x = ??, y = ??, color = ??)) +
+  geom_point() +
+  xlab("PCA 2") +
+  ylab("PCA 3") +
+  scale_color_manual(values = met.brewer("Greek", 2))
+
+# plot PC1 vs PC2 and color points according to compound
+ggplot(pca_op_x, aes(x = ??, y = ??, color = ??)) +
+  geom_point() +
+  xlab("PCA 2") +
+  ylab("PCA 3") +
+  scale_color_manual(values = met.brewer("Hiroshige", 3))
+
+# plot PC2 vs PC3 and color points according to compound
+ggplot(pca_op_x, aes(x = ??, y = ??, color = ??)) +
+  geom_point() +
+  xlab("PCA 2") +
+  ylab("PCA 3") +
+  scale_color_manual(values = met.brewer("NewKingdom", 3))
+```
+
+- Do the cells clearly separate by disease status or treatment condition?
+
+### 3. Perform dimensionality reduction with PHATE <a name="PHATE"></a>
+
+3.3 Perform dimensionality reduction with PHATE, specifying two components (ndim = 2), 50 nearest neighbors (knn = 50), and parallel processing (n.jobs = -1). For more details on parameters, see the [PHATE documentation](https://github.com/KrishnaswamyLab/phateR). Then plot PHATE data and color cells according to disease or compound.
+
+```{r, eval = FALSE}
+# Perform PHATE and transform data
+phate_op <- phate(data, ??)
+phate_x <- as.data.frame(phate_op$embedding)
+
+ggplot(phate_x, aes(x = ??, y = ??, color = ??)) +
+  geom_point() +
+  xlab("PHATE 1") +
+  ylab("PHATE 2") +
+  scale_color_manual(values = met.brewer("Egypt", 2))
+
+ggplot(phate_x, aes(x = ??, y = ??, color = ??)) +
+  geom_point() +
+  xlab("PHATE 1") +
+  ylab("PHATE 2") +
+  scale_color_manual(values = met.brewer("Egypt", 3))
+```
+
