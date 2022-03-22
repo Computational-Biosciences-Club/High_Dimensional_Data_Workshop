@@ -4,14 +4,14 @@ author: "Jolene Ranek - Amjad Dabi"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 
 ```{r libraries, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(phateR)
+library(reticulate)
+virtualenv_create("datasci")
+use_virtualenv("datasci", required = TRUE)
+py_install("phate")
 ```
 
 
