@@ -182,6 +182,28 @@ pre code {
 </div>
 <div id="perform-unsupervised-clustering" class="section level3">
 <h3>1. Perform Unsupervised Clustering <a name="cluster"></a></h3>
+<p>Before we do anything, let’s make sure the libraries are loaded</p>
+<pre class="r"><code>library(data.table)
+library(tidyverse)
+library(magrittr)
+library(phateR)
+library(MetBrewer)
+library(reticulate)
+virtualenv_create(&quot;datasci&quot;)</code></pre>
+<pre><code>## virtualenv: datasci</code></pre>
+<pre class="r"><code>use_virtualenv(&quot;datasci&quot;, required = TRUE)
+py_install(&quot;phate&quot;)</code></pre>
+<pre><code>## Using virtual environment &quot;C:/Users/amjad/Documents/.virtualenvs/datasci&quot; ...</code></pre>
+<pre class="r"><code>setwd(&quot;./&quot;)</code></pre>
+<p>Then let’s load the data and perform clustering again.</p>
+<pre class="r"><code>data &lt;- fread(&quot;../data/sc_neurons_data.csv&quot;, header = TRUE) %&gt;% column_to_rownames(var=&quot;V1&quot;)
+metadata &lt;- fread(&quot;../data/sc_neurons_metadata.csv&quot;, header = TRUE) %&gt;% column_to_rownames(var=&quot;V1&quot;)
+
+phate_op &lt;- phate(data, ??)
+phate_x &lt;- as.data.frame(phate_op$embedding)
+
+pca_op &lt;- prcomp(data, rank = ??) #how many components
+pca_op_x &lt;- as.data.frame(pca_op$x)</code></pre>
 <p>4.1 Let’s try clustering with kmeans/ spectral clustering to identify potential cell types associated with disease condition. For starters, let’s specify 5 clusters (centers) and visualize the results using PHATE.</p>
 <pre class="r"><code># Perform unsupervised clustering using kmeans on the phate operator.
 clusters &lt;- kmeans(phate_op$operator$diff_potential, centers = ??)$cluster

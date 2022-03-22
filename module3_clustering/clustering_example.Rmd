@@ -16,6 +16,34 @@ output:
 
 ### 1. Perform Unsupervised Clustering <a name="cluster"></a>
 
+Before we do anything, let's make sure the libraries are loaded
+
+```{r, message=FALSE, warning=FALSE}
+library(data.table)
+library(tidyverse)
+library(magrittr)
+library(phateR)
+library(MetBrewer)
+library(reticulate)
+virtualenv_create("datasci")
+use_virtualenv("datasci", required = TRUE)
+py_install("phate")
+setwd("./")
+```
+
+Then let's load the data and perform clustering again.
+
+```{r, eval = FALSE}
+data <- fread("../data/sc_neurons_data.csv", header = TRUE) %>% column_to_rownames(var="V1")
+metadata <- fread("../data/sc_neurons_metadata.csv", header = TRUE) %>% column_to_rownames(var="V1")
+
+phate_op <- phate(data, ??)
+phate_x <- as.data.frame(phate_op$embedding)
+
+pca_op <- prcomp(data, rank = ??) #how many components
+pca_op_x <- as.data.frame(pca_op$x)
+```
+
 4.1 Let's try clustering with kmeans/ spectral clustering to identify potential cell types associated with disease condition. For starters, let's specify 5 clusters (centers) and visualize the results using PHATE.
 
 ```{r, eval = FALSE}
