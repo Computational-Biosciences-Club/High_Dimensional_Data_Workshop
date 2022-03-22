@@ -29,6 +29,10 @@ library(tidyverse)
 library(magrittr)
 library(phateR)
 library(MetBrewer)
+library(reticulate)
+virtualenv_create("datasci")
+use_virtualenv("datasci", required = TRUE)
+py_install("phate")
 setwd("./")
 ```
 
