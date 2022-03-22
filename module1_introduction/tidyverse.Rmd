@@ -15,14 +15,14 @@ knitr::opts_chunk$set(echo = TRUE)
 Within the R community, we observe that there are multiple code styles. Your code style will not matter as much if you are the only person analyzing the data, however, this becomes problematic if you work as a team along with other R programmers. To circumnavigate this issue, I will introduce a collection of packages (and philosophy) known as [Tidyverse](https://www.tidyverse.org) and its code-style developed by Tidyverse and Google. Furthermore, we will look at some of the ggplot functions to visualize your data.
 
 ## Table of Contents
-  1. Tidyverse Code Style
-    a. Naming R script 
-    b. Organizing script structure
-    c. Syntax
-    d. Pipes
-      - Examples
-  2 Data visualization with ggplot2
-    a. Using custom color palettes
+1. Tidyverse Code Style
+  - Naming R script 
+  - Organizing script structure
+  - Syntax
+  - Pipes
+2. Data visualization with ggplot2
+  - Using custom color palettes
+  
 
 <br>
 
